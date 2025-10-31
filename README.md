@@ -398,4 +398,6 @@ This tool is provided without official support. For issues:
 
 ## Credits
 
+**Original Concept and Implementation**: This project was the original brainchild of Jerrod Hofferth. All credit for the idea and initial implementation goes to him.
+
 This installer automates the setup of several open-source and commercial tools to provide a seamless experience for Mac users who need to access Linux-only servo controller software with remote USB devices.
