@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+*.swp
+*.swo
+.AppleDouble
+.LSOverride
+
+# Temporary files
+*.tmp
+*.log
+
+# Downloaded archives (users will get fresh versions)
+*.tar.gz
+*.deb
+*.pkg
+
+# VM-related (users create their own)
+.multipass/
+
+# IDE
+.vscode/
+.idea/
