@@ -100,7 +100,7 @@ get_vm_ip() {
     local attempt=0
     local max_attempts=30
 
-    # Extract subnet from host IP (e.g., 192.168.86.80 -> 192.168.86)
+    # Extract subnet from host IP (e.g., X.X.X.80 -> X.X.X)
     local host_subnet=$(echo "$HOST_IP" | cut -d. -f1-3)
 
     while [[ $attempt -lt $max_attempts ]]; do

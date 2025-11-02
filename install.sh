@@ -134,7 +134,7 @@ main() {
     echo "  • Set up web-based desktop access"
     echo ""
     echo "Estimated time: 10-15 minutes"
-    echo "Network: Will use WiFi (en0) for bridged networking"
+    echo "Network: Will detect and configure bridged networking"
     echo ""
     read -p "Press Enter to continue or Ctrl+C to cancel..."
 

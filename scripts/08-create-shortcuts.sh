@@ -46,7 +46,7 @@ Version=1.0
 Type=Application
 Name=VirtualHere Control
 Comment=Connect USB devices from Droidnet server
-Exec=xfce4-terminal --title="VirtualHere Control" --hold -e "bash -c '/usr/sbin/vhclientarm64 -t LIST; echo; echo \"Available commands:\"; echo \"  USE,droidnet.114 - Connect CP2102N UART\"; echo \"  USE,droidnet.112 - Connect CSR8510 Bluetooth\"; echo \"  STOP USING,droidnet.114 - Disconnect UART\"; echo \"  STOP USING,droidnet.112 - Disconnect Bluetooth\"; echo; read -p \"Enter command (or press Enter to exit): \" cmd; if [ -n \"\$cmd\" ]; then /usr/sbin/vhclientarm64 -t \"\$cmd\"; echo; read -p \"Press Enter to close\"; fi'"
+Exec=xfce4-terminal --title="VirtualHere Control" --hold -e "bash -c '/usr/sbin/vhclientarm64 -t LIST; echo; echo \"Available commands:\"; echo \"  USE,<server.device> - Connect a device\"; echo \"  STOP USING,<server.device> - Disconnect a device\"; echo; echo \"Example: USE,myserver.114\"; echo \"Use the device addresses shown in the LIST output above.\"; echo; read -p \"Enter command (or press Enter to exit): \" cmd; if [ -n \"\$cmd\" ]; then /usr/sbin/vhclientarm64 -t \"\$cmd\"; echo; read -p \"Press Enter to close\"; fi'"
 Icon=network-wireless
 Terminal=false
 Categories=System;Network;
@@ -127,7 +127,7 @@ QUICK START
 1. CONNECT USB DEVICES
    - Double-click "VirtualHere USB Client" icon (or it starts automatically)
    - Right-click on devices in the VirtualHere window to connect/disconnect
-   - Look for devices from your droidnet server (192.168.86.90)
+   - VirtualHere will auto-discover servers on your network
 
 2. LAUNCH MAESTRO
    - Double-click "Maestro Control Center" icon
@@ -141,7 +141,7 @@ Device not showing in Maestro?
 → Check devices with: lsusb (in terminal)
 
 VirtualHere shows no devices?
-→ Verify droidnet server is online (192.168.86.90)
+→ Verify your VirtualHere server is online and on the same network
 → Check VirtualHere GUI is running (icon in system tray)
 
 RDP not connecting?
@@ -187,8 +187,9 @@ QUICK START
 
 1. CONNECT USB DEVICES
    - Double-click "VirtualHere Control" icon
-   - Type: USE,droidnet.114 (for UART device)
-   - Or: USE,droidnet.112 (for Bluetooth adapter)
+   - View the LIST output to see available servers and devices
+   - Type: USE,<server.device> (e.g., USE,myserver.114)
+   - Use the device addresses shown in the LIST output
    - Press Enter
 
 2. LAUNCH MAESTRO
@@ -203,11 +204,13 @@ Device not showing in Maestro?
 → Check devices with: lsusb (in terminal)
 
 VirtualHere shows no devices?
-→ Verify droidnet server is online (192.168.86.90)
+→ Verify your VirtualHere server is online and on the same network
 → Check service: sudo systemctl status vhclient
+→ Run LIST command to see discovered servers
 
 Need to disconnect a device?
-→ VirtualHere Control: STOP USING,droidnet.114
+→ VirtualHere Control: STOP USING,<server.device>
+→ Use device address from LIST output
 
 RDP not connecting?
 → Check service: sudo systemctl status xrdp
@@ -217,8 +220,10 @@ TERMINAL COMMANDS
 -----------------
 Check USB devices: lsusb
 List VirtualHere devices: /usr/sbin/vhclientarm64 -t LIST
-Connect device: /usr/sbin/vhclientarm64 -t "USE,droidnet.114"
-Disconnect device: /usr/sbin/vhclientarm64 -t "STOP USING,droidnet.114"
+Connect device: /usr/sbin/vhclientarm64 -t "USE,<server.device>"
+Disconnect device: /usr/sbin/vhclientarm64 -t "STOP USING,<server.device>"
+
+Note: Run LIST first to see available servers and device addresses
 
 For more help, see TROUBLESHOOTING.txt in the installer package.
 

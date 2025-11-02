@@ -12,7 +12,7 @@ Maestro Control Center is a Linux-only application for controlling Pololu Maestr
 
 1. **Ubuntu Virtual Machine** - A complete Linux environment running on your Mac
 2. **Web-based Desktop** - Access the Linux desktop from your browser (no VNC client needed)
-3. **VirtualHere USB** - Connect to USB devices attached to the Droidnet server (192.168.86.90)
+3. **VirtualHere USB** - Connect to USB devices attached to your VirtualHere server (auto-discovered on network)
 4. **Pre-installed Maestro** - Control Center ready to use
 
 ## System Requirements
@@ -20,8 +20,29 @@ Maestro Control Center is a Linux-only application for controlling Pololu Maestr
 - **macOS**: 11 (Big Sur) or newer
 - **RAM**: 8GB minimum (16GB recommended)
 - **Disk Space**: 25GB free
-- **Network**: WiFi connection on the same network as Droidnet server (192.168.86.x subnet)
+- **Network**: Active network connection (Ethernet or Wi-Fi) on the same network as your VirtualHere server
 - **Hardware**: Apple Silicon (M1/M2/M3) or Intel Mac
+
+### Network Requirements
+
+**Your Mac must have a network interface that provides:**
+
+1. ✓ Connection to your VirtualHere server (same local network)
+2. ✓ Internet access (required during installation to download packages)
+3. ✓ Private IP range (192.168.x.x, 10.x.x.x, or 172.16-31.x.x)
+
+**Supported Configurations:**
+
+- ✓ Ethernet or Wi-Fi - both fully supported
+- ✓ Single or multiple interfaces - installer will guide you through selection
+- ✓ USB/Thunderbolt ethernet adapters - fully supported
+- ✓ Mac Mini with built-in Ethernet port - fully supported
+
+**Important Notes:**
+
+- If you have multiple network interfaces, the installer will ask you to select which one connects to your VirtualHere server
+- The selected interface **must have both** local network access and internet access during installation
+- **Split Network Scenario:** If your VirtualHere server is on a network without internet access, you'll need to temporarily connect that network to the internet during installation, or use a different network that has both
 
 ## Installation
 
@@ -71,8 +92,8 @@ When installation completes, you'll see:
 ```
 ✓ Installation complete!
 
-VM IP Address: 192.168.86.XXX
-Desktop URL: http://192.168.86.XXX:6080/vnc.html
+VM IP Address: <VM_IP>
+Desktop URL: http://<VM_IP>:6080/vnc.html
 
 A shortcut has been saved to your Desktop.
 ```
@@ -86,13 +107,13 @@ A shortcut has been saved to your Desktop.
 Open your web browser and navigate to the URL shown during installation:
 
 ```
-http://192.168.86.XXX:6080/vnc.html
+http://<VM_IP>:6080/vnc.html
 ```
 
 Or click the shortcut file saved to your Mac Desktop.
 
 **Alternative**: You can also use an RDP client:
-- Server: `192.168.86.XXX:3389`
+- Server: `<VM_IP>:3389`
 - Username: `ubuntu`
 - Password: `maestro`
 
@@ -146,9 +167,9 @@ If you forget the URL or the IP address changes:
 multipass info droidnet-maestro
 ```
 
-Look for the IPv4 address (something like 192.168.86.XXX), then access:
+Look for the IPv4 address on your local network subnet, then access:
 ```
-http://192.168.86.XXX:6080/vnc.html
+http://<VM_IP>:6080/vnc.html
 ```
 
 ### Checking VM Status
@@ -167,12 +188,12 @@ Your Mac
                       └─ noVNC Web Interface
                           └─ Ubuntu Desktop (XFCE)
                               ├─ VirtualHere USB Client
-                              │   └─ Connects to: droidnet.lan (192.168.86.90:7575)
+                              │   └─ Connects to: Your VirtualHere Server (auto-discovered)
                               │       └─ USB Devices (Maestro controllers)
                               └─ Maestro Control Center
 ```
 
-The VM uses **bridged networking**, meaning it gets its own IP address on your local network (192.168.86.x) just like any other device. This is necessary for VirtualHere to work with the Droidnet server.
+The VM uses **bridged networking**, meaning it gets its own IP address on your local network (same subnet as your Mac) just like any other device. This is necessary for VirtualHere to work with your VirtualHere server.
 
 ## Troubleshooting
 
@@ -205,13 +226,37 @@ Then try starting the VM again.
 1. Verify the VM is running: `multipass list`
 2. If stopped, start it: `multipass start droidnet-maestro`
 3. Verify the IP address: `multipass info droidnet-maestro | grep IPv4`
-4. Make sure you're on the same WiFi network (192.168.86.x subnet)
+4. Make sure you're on the same network as your Mac
+
+### "No active network interfaces found" (during installation)
+
+1. Check System Preferences → Network
+2. Ensure at least one interface is connected and has an IP address
+3. Run `ifconfig` in Terminal to verify interfaces are up
+4. Try connecting to a network and running the installer again
+
+### "Interface does not have internet access" (during installation)
+
+This error means the selected network interface cannot reach the internet, which is required for installation.
+
+**Solutions:**
+
+1. **Connect to internet:** Ensure your network has internet access and try again
+2. **Select different interface:** If you have multiple interfaces, the installer will let you choose another one
+3. **Temporary solution:** If your VirtualHere server is on an isolated network, temporarily connect that network to the internet during installation
+
+**To verify internet:**
+
+```bash
+ping -c 1 8.8.8.8
+```
 
 ### "USB devices don't appear in VirtualHere"
 
-1. Make sure you're on the same network as Droidnet (192.168.86.x)
-2. Verify Droidnet server is running at 192.168.86.90
-3. Try restarting the VirtualHere service inside the VM:
+1. Make sure you're on the same network as your VirtualHere server
+2. Verify your VirtualHere server is running and discoverable on the network
+3. Run the LIST command to see discovered servers (check desktop shortcuts)
+4. Try restarting the VirtualHere service inside the VM:
    ```bash
    multipass exec droidnet-maestro -- sudo systemctl restart vhclient
    ```
@@ -352,8 +397,8 @@ Delete the URL shortcut file from your Mac Desktop (named something like `Droidn
 
 ### Networking
 
-- **Type**: Bridged to WiFi interface (en0)
-- **IP Range**: 192.168.86.x (same as your Mac)
+- **Type**: Bridged to selected network interface (Ethernet or Wi-Fi)
+- **IP Range**: Same subnet as your Mac
 - **Required Ports**:
   - 6080 (noVNC web interface)
   - 5901 (VNC server)

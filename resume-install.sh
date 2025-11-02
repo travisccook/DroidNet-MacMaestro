@@ -76,15 +76,25 @@ check_vm_running() {
     print_success "VM is running"
 }
 
+detect_network() {
+    print_step "Detecting network configuration..."
+
+    # Source the network detection script to get NETWORK_INTERFACE and HOST_IP
+    source "$SCRIPTS_DIR/02-detect-network.sh"
+
+    # These are exported by the detection script
+    export NETWORK_INTERFACE
+    export HOST_IP
+}
+
 get_vm_ip() {
     print_step "Getting VM IP address..."
 
-    # Get all IPs and filter for bridged IP (192.168.86.x)
+    # Get all IPs and filter for bridged IP on host subnet
     local all_ips=$(multipass info "$VM_NAME" | awk '/IPv4:/ {print $2} /^[[:space:]]+[0-9]/ {print $1}')
 
-    # Get host subnet
-    local host_ip=$(ifconfig en0 | grep "inet " | awk '{print $2}' | head -1)
-    local host_subnet=$(echo "$host_ip" | cut -d. -f1-3)
+    # Get host subnet from detected HOST_IP
+    local host_subnet=$(echo "$HOST_IP" | cut -d. -f1-3)
 
     # Get IP matching host's subnet
     VM_IP=$(echo "$all_ips" | grep "^${host_subnet}\." | head -1)
@@ -94,6 +104,9 @@ get_vm_ip() {
         echo ""
         echo "VM IPs found:"
         echo "$all_ips"
+        echo ""
+        echo "Expected subnet: ${host_subnet}.x"
+        echo "Host interface: $NETWORK_INTERFACE ($HOST_IP)"
         echo ""
         echo "Please check: multipass info $VM_NAME"
         exit 1
@@ -183,6 +196,7 @@ echo ""
 # Pre-flight checks
 check_vm_exists
 check_vm_running
+detect_network
 get_vm_ip
 
 # Export variables that will be used by phase scripts
