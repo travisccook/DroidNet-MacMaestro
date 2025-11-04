@@ -26,18 +26,19 @@ install_desktop_packages() {
     echo "Please be patient, this may take 5-10 minutes depending on your internet speed..."
     echo ""
 
-    # Install all desktop-related packages
-    multipass exec "$VM_NAME" -- sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        xfce4 \
-        xfce4-goodies \
-        tightvncserver \
-        novnc \
-        websockify \
-        python3-numpy \
-        dbus-x11 \
-        supervisor \
-        firefox \
-        xfce4-terminal
+    # Build package list based on desktop access mode
+    local packages="xfce4 xfce4-goodies dbus-x11 firefox xfce4-terminal"
+
+    if [[ "$DESKTOP_ACCESS_MODE" == "novnc" ]]; then
+        echo "Installing NoVNC (web browser) access packages..."
+        packages="$packages tightvncserver novnc websockify python3-numpy supervisor"
+    else
+        echo "Installing RDP client access packages..."
+        packages="$packages xrdp"
+    fi
+
+    # Install packages
+    multipass exec "$VM_NAME" -- sudo DEBIAN_FRONTEND=noninteractive apt-get install -y $packages
 
     if [[ $? -ne 0 ]]; then
         print_error "Failed to install desktop packages"
@@ -187,11 +188,20 @@ verify_rdp() {
 # Main execution
 update_system
 install_desktop_packages
-configure_vnc_password
-create_vnc_xstartup
-test_vnc_start
-install_rdp
-configure_rdp
-verify_rdp
+
+# Configure based on desktop access mode
+if [[ "$DESKTOP_ACCESS_MODE" == "novnc" ]]; then
+    print_step "Configuring NoVNC access..."
+    configure_vnc_password
+    create_vnc_xstartup
+    test_vnc_start
+    print_success "NoVNC configured - access via web browser"
+else
+    print_step "Configuring RDP access..."
+    # xrdp package already installed in install_desktop_packages
+    configure_rdp
+    verify_rdp
+    print_success "RDP configured - use RDP client to connect"
+fi
 
 print_success "Desktop environment installed and configured"

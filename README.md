@@ -11,7 +11,7 @@ A tool to help you run Pololu Maestro Control Center on your Mac by creating an 
 Maestro Control Center is a Linux-only application for controlling Pololu Maestro servo controllers. This installer automatically sets up:
 
 1. **Ubuntu Virtual Machine** - A complete Linux environment running on your Mac
-2. **Web-based Desktop** - Access the Linux desktop from your browser (no VNC client needed)
+2. **Remote Desktop Access** - Access via RDP client (recommended) or web browser (NoVNC)
 3. **VirtualHere USB** - Connect to USB devices attached to your VirtualHere server (auto-discovered on network)
 4. **Pre-installed Maestro** - Control Center ready to use
 
@@ -71,55 +71,65 @@ When prompted, choose how you want to manage USB device connections:
   - More lightweight (no GUI overhead)
   - Best for advanced users who prefer command-line
 
-### Step 4: Wait for Installation
+### Step 4: Choose Desktop Access Method
+
+When prompted, choose how you want to access the Ubuntu desktop:
+
+- **RDP Client** (recommended)
+  - Use Microsoft Remote Desktop or another RDP client
+  - Better performance and native client experience
+  - Requires installing RDP client software on your Mac
+
+- **Web Browser (NoVNC)**
+  - Access desktop directly from your web browser
+  - No additional software needed
+  - Works from any device with a browser
+  - Slightly lower performance than RDP
+
+### Step 6: Wait for Installation
 
 Installation takes **10-15 minutes** depending on your internet speed. The installer will:
 
 - Install Homebrew (if needed)
 - Install Multipass VM manager (if needed)
 - Create an Ubuntu VM with bridged networking
-- Install desktop environment, VNC, and noVNC
+- Install desktop environment and your chosen access method (RDP or NoVNC)
 - Install VirtualHere USB client
 - Install Maestro Control Center
 - Configure all services to auto-start
 
 You'll see progress messages for each step. **Do not close the terminal window.**
 
-### Step 5: Save Your Connection Info
+### Step 7: Save Your Connection Info
 
-When installation completes, you'll see:
+When installation completes, connection information for your chosen access method will be displayed and saved to your Mac Desktop.
 
-```
-✓ Installation complete!
-
-VM IP Address: <VM_IP>
-Desktop URL: http://<VM_IP>:6080/vnc.html
-
-A shortcut has been saved to your Desktop.
-```
-
-**Important**: The VM IP address may change if your network changes. See "Getting the URL" below if you lose it.
+**Important**: The VM IP address may change if your network changes. Use `multipass info droidnet-maestro` to get the current IP if needed.
 
 ## First-Time Setup
 
 ### 1. Access the Linux Desktop
 
-Open your web browser and navigate to the URL shown during installation:
+The access method depends on what you chose during installation:
 
-```
-http://<VM_IP>:6080/vnc.html
-```
+**If you chose RDP Client:**
 
-Or click the shortcut file saved to your Mac Desktop.
+1. Open Microsoft Remote Desktop (or your preferred RDP client)
+2. Connect to: `<VM_IP>:3389`
+3. Login with:
+   - Username: `ubuntu`
+   - Password: `maestro`
 
-**Alternative**: You can also use an RDP client:
-- Server: `<VM_IP>:3389`
-- Username: `ubuntu`
-- Password: `maestro`
+**If you chose Web Browser (NoVNC):**
+
+1. Open your web browser
+2. Navigate to: `http://<VM_IP>:6080/vnc.html`
+3. Or click the shortcut file saved to your Mac Desktop
+4. Enter VNC password when prompted: `maestro`
 
 ### 2. Connect USB Devices
 
-Once you see the Ubuntu desktop in your browser:
+Once you see the Ubuntu desktop:
 
 1. **Double-click** the "VirtualHere Control" icon on the desktop
 2. **GUI Mode**: A window will open showing available devices - right-click a device and select "Use this device"
@@ -149,7 +159,7 @@ Then get the VM's current IP address:
 multipass info droidnet-maestro | grep IPv4
 ```
 
-The IP shown is where you'll access the desktop: `http://IP:6080/vnc.html`
+The IP shown is where you'll access the desktop.
 
 ### Stopping the VM
 
@@ -159,18 +169,18 @@ When you're done:
 multipass stop droidnet-maestro
 ```
 
-### Getting the URL
+### Getting the Connection Info
 
-If you forget the URL or the IP address changes:
+If you forget the connection info or the IP address changes:
 
 ```bash
 multipass info droidnet-maestro
 ```
 
-Look for the IPv4 address on your local network subnet, then access:
-```
-http://<VM_IP>:6080/vnc.html
-```
+Look for the IPv4 address on your local network subnet, then connect using your chosen access method:
+
+- **RDP**: Connect to `<VM_IP>:3389`
+- **NoVNC**: Navigate to `http://<VM_IP>:6080/vnc.html`
 
 ### Checking VM Status
 
@@ -184,27 +194,32 @@ This shows all VMs and their status (Running/Stopped).
 
 ```
 Your Mac
-  └─ Web Browser → http://VM-IP:6080
-                      └─ noVNC Web Interface
-                          └─ Ubuntu Desktop (XFCE)
-                              ├─ VirtualHere USB Client
-                              │   └─ Connects to: Your VirtualHere Server (auto-discovered)
-                              │       └─ USB Devices (Maestro controllers)
-                              └─ Maestro Control Center
+  └─ RDP Client or Web Browser
+      └─ Ubuntu Desktop (XFCE) in VM
+          ├─ VirtualHere USB Client
+          │   └─ Connects to: Your VirtualHere Server (auto-discovered)
+          │       └─ USB Devices (Maestro controllers)
+          └─ Maestro Control Center
 ```
+
+**RDP Mode**: Uses xrdp server (port 3389) for native remote desktop experience
+**NoVNC Mode**: Uses VNC server (port 5901) with noVNC web interface (port 6080)
 
 The VM uses **bridged networking**, meaning it gets its own IP address on your local network (same subnet as your Mac) just like any other device. This is necessary for VirtualHere to work with your VirtualHere server.
 
 ## Troubleshooting
 
-### "I lost the desktop URL"
+### "I lost the connection information"
 
 Run this command to get the current IP:
 ```bash
 multipass info droidnet-maestro | grep IPv4
 ```
 
-Then access: `http://[that-IP]:6080/vnc.html`
+Then connect using your chosen method:
+
+- **RDP**: `<VM_IP>:3389`
+- **NoVNC**: `http://<VM_IP>:6080/vnc.html`
 
 ### "The VM won't start"
 
@@ -389,9 +404,8 @@ Delete the URL shortcut file from your Mac Desktop (named something like `Droidn
 **Inside the VM:**
 - Ubuntu 22.04 LTS
 - XFCE desktop environment
-- TightVNC server (port 5901)
-- noVNC web interface (port 6080)
-- xrdp RDP server (port 3389)
+- **RDP Mode**: xrdp RDP server (port 3389)
+- **NoVNC Mode**: TightVNC server (port 5901) + noVNC web interface (port 6080) + supervisor
 - VirtualHere USB client
 - Pololu Maestro Control Center (via Mono)
 
@@ -400,10 +414,9 @@ Delete the URL shortcut file from your Mac Desktop (named something like `Droidn
 - **Type**: Bridged to selected network interface (Ethernet or Wi-Fi)
 - **IP Range**: Same subnet as your Mac
 - **Required Ports**:
-  - 6080 (noVNC web interface)
-  - 5901 (VNC server)
-  - 3389 (RDP server)
-  - 7575 (VirtualHere server on Droidnet)
+  - **RDP Mode**: 3389 (RDP server)
+  - **NoVNC Mode**: 6080 (noVNC web interface) + 5901 (VNC server)
+  - **Both Modes**: 7575 (VirtualHere server on Droidnet)
 
 ### VM Specifications
 
@@ -421,10 +434,8 @@ The VirtualHere client runs in **foreground mode** (not as a background daemon) 
 
 ### Passwords
 
-- **VNC Password**: `maestro`
-- **Ubuntu User**: `ubuntu`
-- **Ubuntu Password**: `maestro`
-- **RDP**: Username `ubuntu`, password `maestro`
+- **RDP Mode**: Username `ubuntu`, password `maestro`
+- **NoVNC Mode**: VNC password `maestro`
 
 ## Version Information
 

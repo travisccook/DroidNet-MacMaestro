@@ -96,7 +96,9 @@ create_desktop_readme() {
 
     if [[ "$VIRTUALHERE_MODE" == "gui" ]]; then
         # GUI mode README
-        multipass exec "$VM_NAME" -- bash <<'EOF'
+        if [[ "$DESKTOP_ACCESS_MODE" == "novnc" ]]; then
+            # NoVNC access mode
+            multipass exec "$VM_NAME" -- bash <<'EOF'
 cat > /home/ubuntu/Desktop/README.txt << 'README'
 ========================================
 Droidnet Maestro Control Center
@@ -108,13 +110,57 @@ Welcome! This Ubuntu desktop environment provides access to:
 
 REMOTE ACCESS
 -------------
-You can connect to this desktop via:
-
-Web Browser (noVNC):
+You are using Web Browser (NoVNC) access:
   - URL: http://[VM-IP]:6080/vnc.html
   - Password: maestro
 
-RDP Client (Microsoft Remote Desktop):
+To get VM IP: Open terminal and run: hostname -I
+
+QUICK START
+-----------
+
+1. CONNECT USB DEVICES
+   - Double-click "VirtualHere USB Client" icon (or it starts automatically)
+   - Right-click on devices in the VirtualHere window to connect/disconnect
+   - VirtualHere will auto-discover servers on your network
+
+2. LAUNCH MAESTRO
+   - Double-click "Maestro Control Center" icon
+   - Your USB device should appear in the device list
+
+TROUBLESHOOTING
+---------------
+
+Device not showing in Maestro?
+→ Make sure you connected it via VirtualHere GUI first
+→ Check devices with: lsusb (in terminal)
+
+VirtualHere shows no devices?
+→ Verify your VirtualHere server is online and on the same network
+→ Check VirtualHere GUI is running (icon in system tray)
+
+For more help, see TROUBLESHOOTING.txt in the installer package.
+
+========================================
+README
+
+chown ubuntu:ubuntu /home/ubuntu/Desktop/README.txt
+EOF
+        else
+            # RDP access mode
+            multipass exec "$VM_NAME" -- bash <<'EOF'
+cat > /home/ubuntu/Desktop/README.txt << 'README'
+========================================
+Droidnet Maestro Control Center
+========================================
+
+Welcome! This Ubuntu desktop environment provides access to:
+- VirtualHere USB device sharing (GUI Client)
+- Pololu Maestro Control Center
+
+REMOTE ACCESS
+-------------
+You are using RDP Client access:
   - Server: [VM-IP]:3389
   - Username: ubuntu
   - Password: maestro
@@ -144,10 +190,6 @@ VirtualHere shows no devices?
 → Verify your VirtualHere server is online and on the same network
 → Check VirtualHere GUI is running (icon in system tray)
 
-RDP not connecting?
-→ Check service: sudo systemctl status xrdp
-→ Verify username: ubuntu, password: maestro
-
 For more help, see TROUBLESHOOTING.txt in the installer package.
 
 ========================================
@@ -155,9 +197,12 @@ README
 
 chown ubuntu:ubuntu /home/ubuntu/Desktop/README.txt
 EOF
+        fi
     else
         # CLI mode README
-        multipass exec "$VM_NAME" -- bash <<'EOF'
+        if [[ "$DESKTOP_ACCESS_MODE" == "novnc" ]]; then
+            # NoVNC access mode
+            multipass exec "$VM_NAME" -- bash <<'EOF'
 cat > /home/ubuntu/Desktop/README.txt << 'README'
 ========================================
 Droidnet Maestro Control Center
@@ -169,13 +214,73 @@ Welcome! This Ubuntu desktop environment provides access to:
 
 REMOTE ACCESS
 -------------
-You can connect to this desktop via:
-
-Web Browser (noVNC):
+You are using Web Browser (NoVNC) access:
   - URL: http://[VM-IP]:6080/vnc.html
   - Password: maestro
 
-RDP Client (Microsoft Remote Desktop):
+To get VM IP: Open terminal and run: hostname -I
+
+QUICK START
+-----------
+
+1. CONNECT USB DEVICES
+   - Double-click "VirtualHere Control" icon
+   - View the LIST output to see available servers and devices
+   - Type: USE,<server.device> (e.g., USE,myserver.114)
+   - Use the device addresses shown in the LIST output
+   - Press Enter
+
+2. LAUNCH MAESTRO
+   - Double-click "Maestro Control Center" icon
+   - Your USB device should appear in the device list
+
+TROUBLESHOOTING
+---------------
+
+Device not showing in Maestro?
+→ Make sure you connected it via VirtualHere Control first
+→ Check devices with: lsusb (in terminal)
+
+VirtualHere shows no devices?
+→ Verify your VirtualHere server is online and on the same network
+→ Check service: sudo systemctl status vhclient
+→ Run LIST command to see discovered servers
+
+Need to disconnect a device?
+→ VirtualHere Control: STOP USING,<server.device>
+→ Use device address from LIST output
+
+TERMINAL COMMANDS
+-----------------
+Check USB devices: lsusb
+List VirtualHere devices: /usr/sbin/vhclientarm64 -t LIST
+Connect device: /usr/sbin/vhclientarm64 -t "USE,<server.device>"
+Disconnect device: /usr/sbin/vhclientarm64 -t "STOP USING,<server.device>"
+
+Note: Run LIST first to see available servers and device addresses
+
+For more help, see TROUBLESHOOTING.txt in the installer package.
+
+========================================
+README
+
+chown ubuntu:ubuntu /home/ubuntu/Desktop/README.txt
+EOF
+        else
+            # RDP access mode
+            multipass exec "$VM_NAME" -- bash <<'EOF'
+cat > /home/ubuntu/Desktop/README.txt << 'README'
+========================================
+Droidnet Maestro Control Center
+========================================
+
+Welcome! This Ubuntu desktop environment provides access to:
+- VirtualHere USB device sharing (CLI Daemon)
+- Pololu Maestro Control Center
+
+REMOTE ACCESS
+-------------
+You are using RDP Client access:
   - Server: [VM-IP]:3389
   - Username: ubuntu
   - Password: maestro
@@ -212,10 +317,6 @@ Need to disconnect a device?
 → VirtualHere Control: STOP USING,<server.device>
 → Use device address from LIST output
 
-RDP not connecting?
-→ Check service: sudo systemctl status xrdp
-→ Verify username: ubuntu, password: maestro
-
 TERMINAL COMMANDS
 -----------------
 Check USB devices: lsusb
@@ -232,6 +333,7 @@ README
 
 chown ubuntu:ubuntu /home/ubuntu/Desktop/README.txt
 EOF
+        fi
     fi
 
     if [[ $? -ne 0 ]]; then

@@ -177,11 +177,45 @@ main() {
     done
     echo ""
 
+    # Ask user about desktop access preference
+    print_header "Desktop Access Method Selection"
+    echo ""
+    echo "Choose how you want to access the Ubuntu desktop:"
+    echo ""
+    echo "  1) RDP Client (Recommended)"
+    echo "     - Use Microsoft Remote Desktop or other RDP client"
+    echo "     - Better performance and native client experience"
+    echo "     - Requires RDP client software"
+    echo ""
+    echo "  2) Web Browser (NoVNC)"
+    echo "     - Access via browser at http://VM-IP:6080"
+    echo "     - No additional software needed"
+    echo "     - Works from any device with a browser"
+    echo ""
+    while true; do
+        read -p "Choose desktop access method (1 for RDP, 2 for NoVNC) [1]: " desktop_choice
+        desktop_choice=${desktop_choice:-1}
+
+        if [[ "$desktop_choice" == "1" ]]; then
+            DESKTOP_ACCESS_MODE="rdp"
+            print_success "Selected: RDP Client"
+            break
+        elif [[ "$desktop_choice" == "2" ]]; then
+            DESKTOP_ACCESS_MODE="novnc"
+            print_success "Selected: NoVNC (Web Browser)"
+            break
+        else
+            echo "Invalid choice. Please enter 1 or 2."
+        fi
+    done
+    echo ""
+
     # Export variables that will be used by phase scripts
     export VM_NAME
     export SCRIPT_DIR
     export SCRIPTS_DIR
     export VIRTUALHERE_MODE
+    export DESKTOP_ACCESS_MODE
 
     # Run installation phases
     run_phase 1 "01-check-prerequisites.sh" "Check Prerequisites"
@@ -206,26 +240,53 @@ main() {
     echo -e "${GREEN}Your Droidnet Maestro environment is ready!${NC}"
     echo ""
     echo "Desktop Access:"
-    echo -e "  Web (noVNC): ${BLUE}http://$VM_IP:6080/vnc.html${NC}"
-    echo -e "  VNC Password: ${YELLOW}maestro${NC}"
-    echo ""
-    echo -e "  RDP Client: ${BLUE}$VM_IP:3389${NC}"
-    echo -e "  Username: ${YELLOW}ubuntu${NC}  Password: ${YELLOW}maestro${NC}"
-    echo ""
-    echo "Next steps:"
-    echo "  1. Connect via web browser (noVNC) or RDP client (Microsoft Remote Desktop)"
-    echo "  2. Use VirtualHere Control to connect USB devices"
-    echo "  3. Launch Maestro Control Center from the desktop"
+
+    # Display access method based on selected mode
+    if [[ "$DESKTOP_ACCESS_MODE" == "novnc" ]]; then
+        echo -e "  Web (noVNC): ${BLUE}http://$VM_IP:6080/vnc.html${NC}"
+        echo -e "  VNC Password: ${YELLOW}maestro${NC}"
+        echo ""
+        echo "Next steps:"
+        echo "  1. Open the URL above in your web browser"
+        echo "  2. Enter the VNC password when prompted"
+        echo "  3. Use VirtualHere Control to connect USB devices"
+        echo "  4. Launch Maestro Control Center from the desktop"
+
+        # Save URL to desktop for NoVNC mode
+        echo "http://$VM_IP:6080/vnc.html" > "$HOME/Desktop/Droidnet-Maestro-URL.txt"
+        echo ""
+        print_success "Desktop URL saved to: ~/Desktop/Droidnet-Maestro-URL.txt"
+    else
+        # RDP mode
+        echo -e "  RDP Client: ${BLUE}$VM_IP:3389${NC}"
+        echo -e "  Username: ${YELLOW}ubuntu${NC}  Password: ${YELLOW}maestro${NC}"
+        echo ""
+        echo "Next steps:"
+        echo "  1. Open your RDP client (Microsoft Remote Desktop, etc.)"
+        echo "  2. Connect to $VM_IP:3389"
+        echo "  3. Login with username 'ubuntu' and password 'maestro'"
+        echo "  4. Use VirtualHere Control to connect USB devices"
+        echo "  5. Launch Maestro Control Center from the desktop"
+
+        # Save connection info to desktop for RDP mode
+        cat > "$HOME/Desktop/Droidnet-Maestro-Connection.txt" << EOF
+Droidnet Maestro RDP Connection
+
+Server: $VM_IP:3389
+Username: ubuntu
+Password: maestro
+
+Use your RDP client to connect to this server.
+EOF
+        echo ""
+        print_success "Connection info saved to: ~/Desktop/Droidnet-Maestro-Connection.txt"
+    fi
+
     echo ""
     echo "VM management commands:"
     echo -e "  ${BLUE}multipass start $VM_NAME${NC}   - Start the VM"
     echo -e "  ${BLUE}multipass stop $VM_NAME${NC}    - Stop the VM"
     echo -e "  ${BLUE}multipass info $VM_NAME${NC}    - Check VM status and IP"
-    echo ""
-
-    # Save URL to desktop
-    echo "http://$VM_IP:6080/vnc.html" > "$HOME/Desktop/Droidnet-Maestro-URL.txt"
-    print_success "Desktop URL saved to: ~/Desktop/Droidnet-Maestro-URL.txt"
     echo ""
 }
 

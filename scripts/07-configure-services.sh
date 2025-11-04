@@ -194,11 +194,19 @@ else
     print_step "Skipping VirtualHere service creation (GUI mode - uses autostart)"
 fi
 
-verify_novnc_path
-stop_existing_services
-create_supervisor_config
-start_supervisor_services
-verify_vnc_running
-verify_novnc_running
+# Configure desktop services based on access mode
+if [[ "$DESKTOP_ACCESS_MODE" == "novnc" ]]; then
+    print_step "Configuring NoVNC web access services..."
+    verify_novnc_path
+    stop_existing_services
+    create_supervisor_config
+    start_supervisor_services
+    verify_vnc_running
+    verify_novnc_running
+    print_success "NoVNC services configured and started"
+else
+    print_step "RDP mode selected - skipping VNC/NoVNC service configuration"
+    print_success "RDP uses systemd service (already configured in phase 4)"
+fi
 
 print_success "All services configured and started"
