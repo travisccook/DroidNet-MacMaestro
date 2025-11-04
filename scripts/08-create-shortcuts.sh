@@ -18,7 +18,7 @@ create_virtualhere_shortcut() {
     print_step "Creating VirtualHere shortcut..."
 
     if [[ "$VIRTUALHERE_MODE" == "gui" ]]; then
-        # GUI mode - create shortcut to launch GUI client with sudo
+        # GUI mode - create shortcut to launch GUI client with wrapper
         multipass exec "$VM_NAME" -- bash <<'EOF'
 cat > /home/ubuntu/Desktop/virtualhere.desktop << 'VHDESKTOP'
 [Desktop Entry]
@@ -26,7 +26,7 @@ Version=1.0
 Type=Application
 Name=VirtualHere USB Client
 Comment=Manage USB devices from remote servers
-Exec=sudo /usr/local/bin/vhui
+Exec=/usr/local/bin/vhui-wrapper
 Icon=network-wireless
 Terminal=false
 Categories=System;Network;

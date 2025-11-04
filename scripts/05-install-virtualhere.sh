@@ -91,9 +91,27 @@ configure_virtualhere() {
         print_step "Configuring passwordless sudo for VirtualHere GUI..."
 
         # VirtualHere GUI needs root privileges to manage USB devices
+        # Create wrapper script to handle X11 display authorization properly
         multipass exec "$VM_NAME" -- bash <<'EOF'
-# Allow ubuntu user to run vhui without password
+# Create wrapper script for VirtualHere GUI
+sudo tee /usr/local/bin/vhui-wrapper > /dev/null << 'WRAPPER'
+#!/bin/bash
+# VirtualHere GUI wrapper script - handles X authorization for RDP/VNC
+
+# Get current display and auth
+CURRENT_DISPLAY="${DISPLAY:-:0}"
+CURRENT_XAUTH="${XAUTHORITY:-$HOME/.Xauthority}"
+
+# Run vhui as root with proper display settings
+sudo DISPLAY="$CURRENT_DISPLAY" XAUTHORITY="$CURRENT_XAUTH" /usr/local/bin/vhui "$@"
+WRAPPER
+
+sudo chmod +x /usr/local/bin/vhui-wrapper
+
+# Allow ubuntu user to run vhui and wrapper without password
 echo "ubuntu ALL=(ALL) NOPASSWD: /usr/local/bin/vhui" | sudo tee /etc/sudoers.d/virtualhere > /dev/null
+echo "ubuntu ALL=(ALL) NOPASSWD: /usr/local/bin/vhui-wrapper" | sudo tee -a /etc/sudoers.d/virtualhere > /dev/null
+echo 'Defaults env_keep += "DISPLAY XAUTHORITY"' | sudo tee -a /etc/sudoers.d/virtualhere > /dev/null
 sudo chmod 440 /etc/sudoers.d/virtualhere
 EOF
 
@@ -105,7 +123,7 @@ cat > /home/ubuntu/.config/autostart/virtualhere.desktop << 'AUTOSTART'
 [Desktop Entry]
 Type=Application
 Name=VirtualHere USB Client
-Exec=sudo /usr/local/bin/vhui
+Exec=/usr/local/bin/vhui-wrapper
 Icon=network-wireless
 Terminal=false
 StartupNotify=false
