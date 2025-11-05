@@ -7,9 +7,7 @@
 # This script removes the Droidnet Maestro VM and optionally uninstalls
 # Multipass for a complete clean slate.
 #
-# Usage: ./uninstall.sh [--full]
-#   (no args) - Remove VM and desktop files only
-#   --full    - Also uninstall Multipass
+# Usage: ./uninstall.sh
 #
 # DO NOT run with sudo
 ###############################################################################
@@ -26,12 +24,6 @@ NC='\033[0m' # No Color
 # Configuration
 VM_NAME="droidnet-maestro"
 UNINSTALLER_VERSION="1.0.0"
-
-# Parse command line arguments
-FULL_UNINSTALL=false
-if [[ "$1" == "--full" ]]; then
-    FULL_UNINSTALL=true
-fi
 
 ###############################################################################
 # Helper Functions
@@ -183,18 +175,9 @@ main() {
     echo "  • Droidnet Maestro VM ($VM_NAME)"
     echo "  • Desktop connection files"
 
-    if [[ "$FULL_UNINSTALL" == true ]]; then
-        echo "  • Multipass (--full flag specified)"
-    else
-        echo ""
-        echo "Note: Multipass will NOT be removed"
-        echo "      Run with --full flag to also uninstall Multipass"
-    fi
-
     echo ""
     echo "The following will NOT be removed:"
     echo "  • Homebrew"
-    echo "  • Any other VMs you may have created"
 
     echo ""
     read -p "Continue with uninstallation? (y/N): " confirm
@@ -202,6 +185,26 @@ main() {
     if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
         echo "Uninstallation cancelled"
         exit 0
+    fi
+
+    # Ask about Multipass removal
+    echo ""
+    print_header "Multipass Removal"
+    echo ""
+    echo "Do you also want to uninstall Multipass?"
+    echo ""
+    echo "Note: Uninstalling Multipass will remove ALL Multipass VMs,"
+    echo "      not just Droidnet Maestro."
+    echo ""
+    read -p "Remove Multipass? (y/N) [N]: " remove_multipass
+    remove_multipass=${remove_multipass:-N}
+
+    if [[ "$remove_multipass" =~ ^[Yy]$ ]]; then
+        REMOVE_MULTIPASS=true
+        print_success "Will remove Multipass"
+    else
+        REMOVE_MULTIPASS=false
+        print_success "Will keep Multipass installed"
     fi
 
     echo ""
@@ -227,20 +230,10 @@ main() {
     clean_desktop_files
 
     # Optionally uninstall Multipass
-    if [[ "$FULL_UNINSTALL" == true ]]; then
+    if [[ "$REMOVE_MULTIPASS" == true ]]; then
         echo ""
-        print_header "Full Uninstallation"
-
-        echo "This will uninstall Multipass completely."
-        echo "All Multipass VMs will be removed (not just Droidnet Maestro)."
-        echo ""
-        read -p "Are you sure you want to uninstall Multipass? (y/N): " confirm_multipass
-
-        if [[ "$confirm_multipass" =~ ^[Yy]$ ]]; then
-            uninstall_multipass
-        else
-            print_step "Skipping Multipass uninstallation"
-        fi
+        print_header "Removing Multipass"
+        uninstall_multipass
     fi
 
     # Final summary
@@ -251,17 +244,15 @@ main() {
     echo "  ✓ Droidnet Maestro VM"
     echo "  ✓ Desktop connection files"
 
-    if [[ "$FULL_UNINSTALL" == true ]] && [[ "$confirm_multipass" =~ ^[Yy]$ ]]; then
+    if [[ "$REMOVE_MULTIPASS" == true ]]; then
         echo "  ✓ Multipass"
-    fi
-
-    echo ""
-    echo "Your Mac is now clean of Droidnet Maestro components."
-
-    if [[ "$FULL_UNINSTALL" != true ]]; then
+        echo ""
+        echo "Your Mac is now clean of all Droidnet Maestro and Multipass components."
+    else
+        echo ""
+        echo "Your Mac is now clean of Droidnet Maestro components."
         echo ""
         echo "Note: Multipass is still installed and can be used for other VMs."
-        echo "      Run './uninstall.sh --full' to also remove Multipass."
     fi
 
     echo ""

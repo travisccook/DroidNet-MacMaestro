@@ -377,21 +377,15 @@ If you need more CPU, RAM, or disk:
 
 The easiest way to uninstall is to use the provided uninstaller script:
 
-**Basic uninstall** (removes VM and desktop files, keeps Multipass):
 ```bash
 cd DroidnetMaestro
 ./uninstall.sh
 ```
 
-**Full uninstall** (also removes Multipass):
-```bash
-./uninstall.sh --full
-```
-
 The uninstaller will:
 - Stop and delete the Droidnet Maestro VM
 - Remove all desktop connection files
-- Optionally uninstall Multipass (with `--full` flag)
+- Ask if you want to also remove Multipass (defaults to No)
 - Leave Homebrew installed
 
 ### Manual Uninstallation
