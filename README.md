@@ -373,25 +373,48 @@ If you need more CPU, RAM, or disk:
 
 ## Uninstallation
 
-### Remove the VM
+### Using the Uninstaller (Recommended)
 
+The easiest way to uninstall is to use the provided uninstaller script:
+
+**Basic uninstall** (removes VM and desktop files, keeps Multipass):
+```bash
+cd DroidnetMaestro
+./uninstall.sh
+```
+
+**Full uninstall** (also removes Multipass):
+```bash
+./uninstall.sh --full
+```
+
+The uninstaller will:
+- Stop and delete the Droidnet Maestro VM
+- Remove all desktop connection files
+- Optionally uninstall Multipass (with `--full` flag)
+- Leave Homebrew installed
+
+### Manual Uninstallation
+
+If you prefer to remove components manually:
+
+**Remove the VM:**
 ```bash
 multipass stop droidnet-maestro
 multipass delete droidnet-maestro
 multipass purge
 ```
 
-### Remove Multipass (Optional)
+**Remove Desktop Files:**
+```bash
+rm -f ~/Desktop/Droidnet-Maestro-URL.txt
+rm -f ~/Desktop/Droidnet-Maestro-Connection.txt
+```
 
-If you want to completely remove Multipass:
-
+**Remove Multipass (Optional):**
 ```bash
 brew uninstall multipass
 ```
-
-### Clean Up Desktop Files
-
-Delete the URL shortcut file from your Mac Desktop (named something like `Droidnet-Maestro-URL.txt`).
 
 ## Technical Details
 
